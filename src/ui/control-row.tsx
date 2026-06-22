@@ -55,6 +55,25 @@ export function ColorRow({ label, value, onChange }: ColorRowProps) {
   );
 }
 
+type CheckboxRowProps = {
+  label: string;
+  value: boolean;
+  onChange: (value: boolean) => void;
+};
+
+export function CheckboxRow({ label, value, onChange }: CheckboxRowProps) {
+  return (
+    <label className="row">
+      <span>{label}</span>
+      <input
+        type="checkbox"
+        checked={value}
+        onChange={(e) => onChange(e.target.checked)}
+      />
+    </label>
+  );
+}
+
 type SelectRowProps<T extends string> = {
   label: string;
   value: T;

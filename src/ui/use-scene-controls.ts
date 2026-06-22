@@ -29,6 +29,9 @@ export function useSceneControls() {
   );
   const [pathDepth, setPathDepth] = useState(DEFAULT_CONTROLS.pathDepth);
   const [dirtBump, setDirtBump] = useState(DEFAULT_CONTROLS.dirtBump);
+  const [translucency, setTranslucency] = useState(
+    DEFAULT_CONTROLS.translucency
+  );
 
   return {
     values: {
@@ -48,6 +51,7 @@ export function useSceneControls() {
       debugMode,
       pathDepth,
       dirtBump,
+      translucency,
     },
     set: {
       density: setDensity,
@@ -66,6 +70,7 @@ export function useSceneControls() {
       debugMode: setDebugMode,
       pathDepth: setPathDepth,
       dirtBump: setDirtBump,
+      translucency: setTranslucency,
     },
   };
 }

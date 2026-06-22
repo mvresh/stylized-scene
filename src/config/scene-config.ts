@@ -62,4 +62,5 @@ export const DEFAULT_CONTROLS = {
   debugMode: "full" as DebugMode,
   pathDepth: 0.25,
   dirtBump: 0.15,
+  translucency: true,
 };

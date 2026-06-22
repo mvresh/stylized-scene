@@ -2,7 +2,7 @@ import "./controls-panel.css";
 import { useState } from "react";
 import { GRASS } from "../config/scene-config";
 import type { DebugMode } from "../types";
-import { ColorRow, SelectRow, SliderRow } from "./control-row";
+import { CheckboxRow, ColorRow, SelectRow, SliderRow } from "./control-row";
 import type { ControlSetters, ControlValues } from "./use-scene-controls";
 
 const DEBUG_OPTIONS: ReadonlyArray<{ value: DebugMode; label: string }> = [
@@ -81,6 +81,11 @@ export function ControlsPanel({ values, set }: Props) {
             step={0.01}
             format={fmt2}
             onChange={set.projection}
+          />
+          <CheckboxRow
+            label="Translucency"
+            value={values.translucency}
+            onChange={set.translucency}
           />
           <SelectRow
             label="Debug view"

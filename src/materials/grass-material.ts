@@ -1,6 +1,7 @@
 import { MeshStandardNodeMaterial } from "three/webgpu";
 import {
   abs,
+  cameraPosition,
   cameraViewMatrix,
   clamp,
   color as tslColor,
@@ -23,7 +24,7 @@ import {
   vec4,
 } from "three/tsl";
 import { DoubleSide, type Texture } from "three";
-import { SCENE } from "../config/scene-config";
+import { LIGHTING, SCENE } from "../config/scene-config";
 import type { CursorUniforms, DebugMode } from "../types";
 import type { ColorUniform, FloatUniform } from "../utils/use-uniform";
 
@@ -47,6 +48,7 @@ export type GrassMaterialParams = {
     windStrength: FloatUniform;
     windSpeed: FloatUniform;
     projection: FloatUniform;
+    translucencyEnabled: FloatUniform;
     cursor: CursorUniforms;
   };
 };
@@ -200,6 +202,43 @@ export function buildGrassMaterial({
     vec3(normalWorld.x, abs(normalWorld.y), normalWorld.z)
   );
   m.normalNode = normalize(cameraViewMatrix.mul(vec4(skyNormalWorld, 0)).xyz);
+
+  // --- Translucency (back-light subsurface approximation) ---
+  // Thin grass blades let sunlight scatter through them: when the sun sits
+  // behind a blade relative to the camera, the blade glows warm at the edges.
+  // This is the Half-Life 2 / GPU Gems back-translucency trick — no real
+  // subsurface scattering, just a view/light alignment term added as emissive.
+  //
+  // sunDir points from the surface toward the sun. The directional light's
+  // target is the origin, so for a directional light its world direction is
+  // simply the normalized sun position. We perturb it by the surface normal
+  // ("distortion") so the glow wraps slightly around the blade rather than
+  // being a hard back-facing lobe, then take how much the view direction lines
+  // up with the light travelling toward the camera (dot of viewDir with the
+  // negated, distorted light dir). Masked toward the tips, where blades are
+  // thinnest and transmit the most light, and tinted warm yellow-green.
+  // The whole term is scaled by a 0/1 uniform so the debug checkbox toggles it
+  // live without rebuilding the material.
+  const sunDir = normalize(
+    vec3(
+      LIGHTING.sunPosition[0],
+      LIGHTING.sunPosition[1],
+      LIGHTING.sunPosition[2]
+    )
+  );
+  const viewDir = cameraPosition.sub(positionWorld).normalize();
+  const transDistortion = float(0.5);
+  const transLightDir = sunDir.add(skyNormalWorld.mul(transDistortion)).normalize();
+  const backLight = viewDir.dot(transLightDir.negate()).max(0).pow(3.0);
+  const thicknessMask = pow(heightAlongBlade, 1.5);
+  const translucencyColor = tslColor(0xcfe06a);
+  const translucency = translucencyColor
+    .mul(backLight)
+    .mul(thicknessMask)
+    .mul(1.2)
+    .mul(uniforms.translucencyEnabled);
+
+  m.emissiveNode = translucency;
 
   return m;
 }

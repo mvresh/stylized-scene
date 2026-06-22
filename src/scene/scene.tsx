@@ -23,6 +23,7 @@ type Props = {
   debugMode: DebugMode;
   pathDepth: number;
   dirtBump: number;
+  translucency: boolean;
 };
 
 export function Scene(props: Props) {
@@ -88,6 +89,7 @@ export function Scene(props: Props) {
         windSpeed={props.windSpeed}
         projection={props.projection}
         debugMode={props.debugMode}
+        translucency={props.translucency}
         groundColorMap={grassColor}
         noiseMap={noiseMap}
         pathMask={pathMask}
