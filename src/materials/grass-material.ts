@@ -1,8 +1,6 @@
 import { MeshStandardNodeMaterial } from "three/webgpu";
 import {
-  abs,
   cameraPosition,
-  cameraViewMatrix,
   clamp,
   color as tslColor,
   float,
@@ -11,20 +9,19 @@ import {
   mix,
   mx_noise_float,
   normalize,
-  normalWorld,
   positionLocal,
   positionWorld,
   pow,
   texture as tslTexture,
   vec2,
   vec3,
-  vec4,
 } from "three/tsl";
 import { DoubleSide, type Texture } from "three";
 import { LIGHTING, SCENE } from "../config/scene-config";
 import type { DebugMode } from "../types";
 import type { ColorUniform, FloatUniform } from "../utils/use-uniform";
 import { windSwayOffset } from "./wind";
+import { skyHemisphereNormal } from "./normals";
 
 export type GrassMaterialParams = {
   bladeHeight: number;
@@ -157,18 +154,10 @@ export function buildGrassMaterial({
   m.colorNode = outputColor;
   m.roughnessNode = float(0.85);
 
-  // --- Double-sided lighting fix ---
-  // With DoubleSide, three.js flips the shading normal on back-facing
-  // fragments. On an up-pointing grass blade that rotates the normal down
-  // into the dark lower hemisphere, so the back face reads as unlit even
-  // though the albedo is correct. Mirror the normal back into the upper
-  // (sky-lit) hemisphere by forcing a positive world-up component, so both
-  // faces sample the same sky/ambient light while keeping the sideways
-  // shaping from the blade's outward-facing normal.
-  const skyNormalWorld = normalize(
-    vec3(normalWorld.x, abs(normalWorld.y), normalWorld.z)
-  );
-  m.normalNode = normalize(cameraViewMatrix.mul(vec4(skyNormalWorld, 0)).xyz);
+  // Double-sided lighting fix (see skyHemisphereNormal). skyNormalWorld is
+  // reused below by the translucency and fresnel terms.
+  const { world: skyNormalWorld, view: skyNormalView } = skyHemisphereNormal();
+  m.normalNode = skyNormalView;
 
   // --- Translucency (back-light subsurface approximation) ---
   // Thin grass blades let sunlight scatter through them: when the sun sits
