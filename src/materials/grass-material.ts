@@ -49,6 +49,7 @@ export type GrassMaterialParams = {
     windSpeed: FloatUniform;
     projection: FloatUniform;
     translucencyEnabled: FloatUniform;
+    fresnelEnabled: FloatUniform;
     cursor: CursorUniforms;
   };
 };
@@ -238,7 +239,21 @@ export function buildGrassMaterial({
     .mul(1.2)
     .mul(uniforms.translucencyEnabled);
 
-  m.emissiveNode = translucency;
+  // --- Fresnel rim ---
+  // Surfaces reflect more at grazing angles, so blade edges/silhouettes facing
+  // away from the camera catch a soft rim of light. fresnel is high where the
+  // view direction is perpendicular to the normal (1 - N·V), tightened with a
+  // power. Added as a subtle pale-warm emissive rim, reusing the viewDir and
+  // up-biased normal already computed above (a single dot + pow — no new texture
+  // reads). Scaled by the fresnelEnabled uniform for a live toggle.
+  const fresnel = float(1).sub(skyNormalWorld.dot(viewDir).max(0)).pow(4.0);
+  const fresnelColor = tslColor(0xeaf2c0);
+  const fresnelRim = fresnelColor
+    .mul(fresnel)
+    .mul(0.25)
+    .mul(uniforms.fresnelEnabled);
+
+  m.emissiveNode = translucency.add(fresnelRim);
 
   return m;
 }

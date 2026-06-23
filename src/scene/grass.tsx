@@ -30,6 +30,7 @@ type Props = {
   projection: number;
   debugMode: DebugMode;
   translucency: boolean;
+  fresnel: boolean;
   groundColorMap: Texture;
   noiseMap: Texture;
   pathMask: Texture;
@@ -52,6 +53,7 @@ export function Grass({
   projection,
   debugMode,
   translucency,
+  fresnel,
   groundColorMap,
   noiseMap,
   pathMask,
@@ -77,6 +79,7 @@ export function Grass({
   const windSpeedU = useUniform(windSpeed);
   const projectionU = useUniform(projection);
   const translucencyU = useUniform(translucency ? 1 : 0);
+  const fresnelU = useUniform(fresnel ? 1 : 0);
 
   useEffect(() => {
     noiseMap.wrapS = noiseMap.wrapT = RepeatWrapping;
@@ -102,6 +105,7 @@ export function Grass({
           windSpeed: windSpeedU,
           projection: projectionU,
           translucencyEnabled: translucencyU,
+          fresnelEnabled: fresnelU,
           cursor,
         },
       }),
@@ -123,6 +127,7 @@ export function Grass({
       windSpeedU,
       projectionU,
       translucencyU,
+      fresnelU,
       cursor,
     ]
   );

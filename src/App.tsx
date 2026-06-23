@@ -1,12 +1,53 @@
-import { Suspense } from "react";
-import { Canvas } from "@react-three/fiber";
+import { Suspense, useEffect } from "react";
+import { Canvas, useThree } from "@react-three/fiber";
 import { CameraControls, Environment, useTexture } from "@react-three/drei";
-import { EquirectangularReflectionMapping } from "three";
+import {
+  ACESFilmicToneMapping,
+  AgXToneMapping,
+  CineonToneMapping,
+  EquirectangularReflectionMapping,
+  LinearToneMapping,
+  NeutralToneMapping,
+  NoToneMapping,
+  ReinhardToneMapping,
+  type Material,
+  type Mesh,
+  type ToneMapping,
+} from "three";
 import { createWebGPURenderer } from "./renderer/webgpu-renderer";
 import { LIGHTING, TEXTURE_PATHS } from "./config/scene-config";
+import type { ToneMappingMode } from "./types";
 import { Scene } from "./scene/scene";
 import { ControlsPanel } from "./ui/controls-panel";
 import { useSceneControls } from "./ui/use-scene-controls";
+
+const TONE_MAPPING_VALUES: Record<ToneMappingMode, ToneMapping> = {
+  none: NoToneMapping,
+  linear: LinearToneMapping,
+  reinhard: ReinhardToneMapping,
+  cineon: CineonToneMapping,
+  aces: ACESFilmicToneMapping,
+  agx: AgXToneMapping,
+  neutral: NeutralToneMapping,
+};
+
+// Applies the selected tone mapping curve to the WebGPU renderer at runtime.
+// In WebGPU the tone mapping function is compiled into each material's output,
+// so switching it requires flagging existing materials for recompile.
+function ToneMappingControl({ mode }: { mode: ToneMappingMode }) {
+  const gl = useThree((s) => s.gl);
+  const scene = useThree((s) => s.scene);
+  useEffect(() => {
+    gl.toneMapping = TONE_MAPPING_VALUES[mode];
+    scene.traverse((o) => {
+      const material = (o as Mesh).material;
+      if (!material) return;
+      const list = Array.isArray(material) ? material : [material];
+      list.forEach((m: Material) => (m.needsUpdate = true));
+    });
+  }, [gl, scene, mode]);
+  return null;
+}
 
 // drei's <Environment files> chooses a loader from the file extension and
 // rejects plain .png equirectangulars. Load the texture ourselves and pass it
@@ -30,6 +71,7 @@ export default function App() {
   return (
     <>
       <Canvas
+        flat
         shadows
         camera={{ position: [3, 3, 4] }}
         gl={createWebGPURenderer}
@@ -56,6 +98,7 @@ export default function App() {
             ]}
           />
         </directionalLight>
+        <ToneMappingControl mode={values.toneMapping} />
         <Suspense fallback={null}>
           <SkyEnvironment />
           <Scene {...values} />

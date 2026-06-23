@@ -1,4 +1,4 @@
-import type { DebugMode } from "../types";
+import type { DebugMode, ToneMappingMode } from "../types";
 
 export const SCENE = {
   GROUND_SIZE: 40,
@@ -8,6 +8,22 @@ export const SCENE = {
 export const GRASS = {
   MAX_INSTANCES: 30000,
 } as const;
+
+// Tone mapping curves selectable from the debug panel. "neutral" (Khronos PBR
+// Neutral) rolls off bright highlights while preserving hue/saturation, which
+// suits a stylized look; "none" lets values clip to white for comparison.
+export const TONE_MAPPING_OPTIONS: ReadonlyArray<{
+  value: ToneMappingMode;
+  label: string;
+}> = [
+  { value: "neutral", label: "PBR Neutral (stylized)" },
+  { value: "agx", label: "AgX" },
+  { value: "aces", label: "ACES Filmic" },
+  { value: "reinhard", label: "Reinhard" },
+  { value: "cineon", label: "Cineon" },
+  { value: "linear", label: "Linear" },
+  { value: "none", label: "None (clip to white)" },
+];
 
 export const LIGHTING = {
   // Directional "sun" key light. Position sets the sun direction — keep it
@@ -63,4 +79,6 @@ export const DEFAULT_CONTROLS = {
   pathDepth: 0.25,
   dirtBump: 0.15,
   translucency: true,
+  fresnel: false,
+  toneMapping: "neutral" as ToneMappingMode,
 };

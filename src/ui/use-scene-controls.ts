@@ -32,6 +32,8 @@ export function useSceneControls() {
   const [translucency, setTranslucency] = useState(
     DEFAULT_CONTROLS.translucency
   );
+  const [fresnel, setFresnel] = useState(DEFAULT_CONTROLS.fresnel);
+  const [toneMapping, setToneMapping] = useState(DEFAULT_CONTROLS.toneMapping);
 
   return {
     values: {
@@ -52,6 +54,8 @@ export function useSceneControls() {
       pathDepth,
       dirtBump,
       translucency,
+      fresnel,
+      toneMapping,
     },
     set: {
       density: setDensity,
@@ -71,6 +75,8 @@ export function useSceneControls() {
       pathDepth: setPathDepth,
       dirtBump: setDirtBump,
       translucency: setTranslucency,
+      fresnel: setFresnel,
+      toneMapping: setToneMapping,
     },
   };
 }

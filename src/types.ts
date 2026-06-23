@@ -9,6 +9,15 @@ export type DebugMode =
   | "world"
   | "pathmask";
 
+export type ToneMappingMode =
+  | "none"
+  | "linear"
+  | "reinhard"
+  | "cineon"
+  | "aces"
+  | "agx"
+  | "neutral";
+
 export function makeCursorUniforms() {
   return {
     pos: uniform(new Vector2(0, 0)),

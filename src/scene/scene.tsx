@@ -24,6 +24,7 @@ type Props = {
   pathDepth: number;
   dirtBump: number;
   translucency: boolean;
+  fresnel: boolean;
 };
 
 export function Scene(props: Props) {
@@ -90,6 +91,7 @@ export function Scene(props: Props) {
         projection={props.projection}
         debugMode={props.debugMode}
         translucency={props.translucency}
+        fresnel={props.fresnel}
         groundColorMap={grassColor}
         noiseMap={noiseMap}
         pathMask={pathMask}

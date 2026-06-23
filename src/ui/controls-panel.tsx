@@ -1,6 +1,6 @@
 import "./controls-panel.css";
 import { useState } from "react";
-import { GRASS } from "../config/scene-config";
+import { GRASS, TONE_MAPPING_OPTIONS } from "../config/scene-config";
 import type { DebugMode } from "../types";
 import { CheckboxRow, ColorRow, SelectRow, SliderRow } from "./control-row";
 import type { ControlSetters, ControlValues } from "./use-scene-controls";
@@ -38,6 +38,12 @@ export function ControlsPanel({ values, set }: Props) {
       </button>
       {!collapsed && (
         <div className="controls-body">
+          <SelectRow
+            label="Tone mapping"
+            value={values.toneMapping}
+            options={TONE_MAPPING_OPTIONS}
+            onChange={set.toneMapping}
+          />
           <SliderRow
             label="Density"
             value={values.density}
@@ -86,6 +92,11 @@ export function ControlsPanel({ values, set }: Props) {
             label="Translucency"
             value={values.translucency}
             onChange={set.translucency}
+          />
+          <CheckboxRow
+            label="Fresnel rim"
+            value={values.fresnel}
+            onChange={set.fresnel}
           />
           <SelectRow
             label="Debug view"
