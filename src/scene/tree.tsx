@@ -18,6 +18,11 @@ import { cameraFacingNormal } from "../materials/normals";
 import { useUniform } from "../utils/use-uniform";
 
 type Props = {
+  // World position of the tree's base, plus optional yaw/scale so scattered
+  // copies don't look identical.
+  position: [number, number, number];
+  rotationY?: number;
+  scale?: number;
   windStrength: number;
   windSpeed: number;
   windAngle: number;
@@ -37,11 +42,6 @@ type BushInstance = {
   scale: number;
 };
 
-// Where the tree sits on the 40x40 ground (centered at origin, so each axis
-// spans -20..20). Toward the top-right but kept well inside the field so it
-// reads as standing in the grass.
-const TREE_POSITION: [number, number, number] = [12, 0, -12];
-
 // Uniform scale-up for the trunk GLB (its mesh is ~0.16 units tall, base at
 // y~=0), bringing the top up so the bushes can sit on it.
 const TRUNK_SCALE = 12;
@@ -58,6 +58,9 @@ const BUSH_INSTANCES: ReadonlyArray<BushInstance> = [
 // a yaw basis (so the bend stays coherent in world space across the rotated
 // instances) — the same attribute trick the grass uses.
 export function Tree({
+  position,
+  rotationY = 0,
+  scale = 1,
   windStrength,
   windSpeed,
   windAngle,
@@ -67,6 +70,7 @@ export function Tree({
   treeSway,
   noiseMap,
 }: Props) {
+  const [posX, , posZ] = position;
   const { scene: leavesScene } = useGLTF(TEXTURE_PATHS.treeLeaves);
   const { scene: trunkScene } = useGLTF(TEXTURE_PATHS.treeTrunk);
   const alphaMap = useTexture(TEXTURE_PATHS.treeLeavesAlpha);
@@ -99,24 +103,28 @@ export function Tree({
   //    instance in the vertex stage, which would move them in lockstep).
   //  - aFacing: cos/sin of each bush's yaw, to counter-rotate the world bend into
   //    the instance's local frame.
+  // The geometry is cloned per tree because these attributes are baked from this
+  // tree's world position — sharing the cached GLB geometry would make every
+  // tree read the last one's gust origin.
   const { geometry, baseY, height } = useMemo(() => {
     const bounds = extractFirstMeshGeometry(leavesScene);
     if (!bounds.geometry) return bounds;
+    const geom = bounds.geometry.clone();
 
     const count = BUSH_INSTANCES.length;
     const origin = new Float32Array(count * 2);
     const facing = new Float32Array(count * 2);
     BUSH_INSTANCES.forEach((b, i) => {
-      origin[i * 2 + 0] = TREE_POSITION[0] + b.pos[0];
-      origin[i * 2 + 1] = TREE_POSITION[2] + b.pos[2];
+      origin[i * 2 + 0] = posX + b.pos[0];
+      origin[i * 2 + 1] = posZ + b.pos[2];
       facing[i * 2 + 0] = Math.cos(b.yaw);
       facing[i * 2 + 1] = Math.sin(b.yaw);
     });
-    bounds.geometry.setAttribute("aOrigin", new InstancedBufferAttribute(origin, 2));
-    bounds.geometry.setAttribute("aFacing", new InstancedBufferAttribute(facing, 2));
+    geom.setAttribute("aOrigin", new InstancedBufferAttribute(origin, 2));
+    geom.setAttribute("aFacing", new InstancedBufferAttribute(facing, 2));
 
-    return bounds;
-  }, [leavesScene]);
+    return { ...bounds, geometry: geom };
+  }, [leavesScene, posX, posZ]);
 
   const material = useMemo(() => {
     // The alpha map is a non-color mask; keep it linear so its values aren't
@@ -196,13 +204,13 @@ export function Tree({
   if (!geometry) return null;
 
   return (
-    <group position={TREE_POSITION}>
+    <group position={position} rotation={[0, rotationY, 0]} scale={scale}>
       <primitive object={trunk} scale={TRUNK_SCALE} />
       <instancedMesh
         ref={bushesRef}
         args={[geometry, material, BUSH_INSTANCES.length]}
         castShadow
-        receiveShadow
+        // receiveShadow
         frustumCulled={false}
       />
     </group>

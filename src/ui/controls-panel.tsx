@@ -23,7 +23,7 @@ type Props = {
 };
 
 export function ControlsPanel({ values, set }: Props) {
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(true);
 
   return (
     <div className="controls-panel">
@@ -147,24 +147,6 @@ export function ControlsPanel({ values, set }: Props) {
             value={values.debugMode}
             options={DEBUG_OPTIONS}
             onChange={set.debugMode}
-          />
-          <SliderRow
-            label="Path depth"
-            value={values.pathDepth}
-            min={0}
-            max={0.8}
-            step={0.01}
-            format={fmt2}
-            onChange={set.pathDepth}
-          />
-          <SliderRow
-            label="Dirt bump"
-            value={values.dirtBump}
-            min={0}
-            max={0.5}
-            step={0.01}
-            format={fmt2}
-            onChange={set.dirtBump}
           />
           <SliderRow
             label="Color variation"

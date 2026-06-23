@@ -5,6 +5,20 @@ import { Tree } from "./tree";
 import { Ground } from "./ground";
 import { Grass } from "./grass";
 
+// One tree near each corner of the 40x40 ground (axes span -20..20), inset so
+// the canopies stay over the grass, with varied yaw/scale so they don't look
+// cloned.
+const TREE_LAYOUT: ReadonlyArray<{
+  position: [number, number, number];
+  rotationY: number;
+  scale: number;
+}> = [
+  { position: [13, 0, -13], rotationY: 0.0, scale: 1.0 },
+  { position: [-13, 0, -13], rotationY: 2.1, scale: 0.9 },
+  { position: [-13, 0, 13], rotationY: 4.0, scale: 1.1 },
+  { position: [13, 0, 13], rotationY: 1.0, scale: 0.95 },
+];
+
 type Props = {
   density: number;
   scale: number;
@@ -60,16 +74,22 @@ export function Scene(props: Props) {
 
   return (
     <>
-      <Tree
-        windStrength={props.windStrength}
-        windSpeed={props.windSpeed}
-        windAngle={props.windAngle}
-        gustScale={props.gustScale}
-        turbulence={props.turbulence}
-        flutter={props.flutter}
-        treeSway={props.treeSway}
-        noiseMap={noiseMap}
-      />
+      {TREE_LAYOUT.map((tree, i) => (
+        <Tree
+          key={i}
+          position={tree.position}
+          rotationY={tree.rotationY}
+          scale={tree.scale}
+          windStrength={props.windStrength}
+          windSpeed={props.windSpeed}
+          windAngle={props.windAngle}
+          gustScale={props.gustScale}
+          turbulence={props.turbulence}
+          flutter={props.flutter}
+          treeSway={props.treeSway}
+          noiseMap={noiseMap}
+        />
+      ))}
       <Ground
         grassColor={grassColor}
         grassNormal={grassNormal}
