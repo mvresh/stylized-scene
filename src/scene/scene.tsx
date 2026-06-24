@@ -4,6 +4,7 @@ import type { DebugMode } from "../types";
 import { Tree } from "./tree";
 import { Ground } from "./ground";
 import { Grass } from "./grass";
+import { Flock } from "./flock";
 
 // One tree near each corner of the 40x40 ground (axes span -20..20), inset so
 // the canopies stay over the grass, with varied yaw/scale so they don't look
@@ -134,6 +135,7 @@ export function Scene(props: Props) {
         noiseMap={noiseMap}
         pathMask={pathMask}
       />
+      <Flock windAngle={props.windAngle} windStrength={props.windStrength} />
     </>
   );
 }
